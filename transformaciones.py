@@ -316,9 +316,43 @@ def sustituir_terminales(g):
     return nueva, crear_paso("Sustitución de terminales", g, nueva, identificados)
 
 def reducir_producciones_largas(g):
-    """Pendiente."""
-    raise NotImplementedError("reducir_producciones_largas")
+    """Reduce A -> B1 B2 ... Bn (n > 2) en producciones binarias:
+        A  -> B1 X1
+        X1 -> B2 X2
+        ...
+        Xk -> B(n-1) Bn
 
+    Reutiliza la misma variable auxiliar cuando la misma cola de símbolos
+    (B2 ... Bn) ya fue procesada, para no duplicar producciones."""
+    nueva = g.copia()
+    nueva.producciones = {}
+    cola_a_var = {}
+
+    for cabeza, cuerpo in g.todas_las_producciones():
+        if len(cuerpo) <= 2:
+            nueva.agregar_produccion(cabeza, cuerpo)
+            continue
+        cabeza_actual = cabeza
+        simbolos = list(cuerpo)
+        while len(simbolos) > 2:
+            cola = tuple(simbolos[1:])
+            if cola not in cola_a_var:
+                xv = nueva.nueva_variable()
+                cola_a_var[cola] = xv
+            xv = cola_a_var[cola]
+            nueva.agregar_produccion(cabeza_actual, (simbolos[0], xv))
+            cabeza_actual = xv
+            simbolos = list(cola)
+        nueva.agregar_produccion(cabeza_actual, tuple(simbolos))
+
+    if cola_a_var:
+        identificados = [
+            f"Cola {list(cola)} asignada a variable {v}"
+            for cola, v in sorted(cola_a_var.items())
+        ]
+    else:
+        identificados = ["No se encontraron producciones de longitud > 2."]
+    return nueva, crear_paso("Reducción de producciones largas", g, nueva, identificados)
 
 
 
