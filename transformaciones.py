@@ -232,14 +232,46 @@ def eliminar_variables_inutiles(g):
 # ======================================================================
 
 def calcular_alcanzables(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_alcanzables")
+    """Recorre en BFS desde el símbolo inicial para hallar todos los
+    símbolos alcanzables (variables y terminales).
 
+    1. alcanzables = {g.inicial}; pendientes = [g.inicial]
+    2. Por cada variable pendiente, agregar cada símbolo de sus cuerpos;
+       si es variable nueva, agregarla también a pendientes."""
+    alcanzables = {g.inicial}
+    pendientes = [g.inicial]
+    while pendientes:
+        variable = pendientes.pop(0)
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza != variable:
+                continue
+            for s in cuerpo:
+                if s not in alcanzables:
+                    alcanzables.add(s)
+                    if g.es_variable(s):
+                        pendientes.append(s)
+    return alcanzables
 
 def eliminar_variables_inalcanzables(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_variables_inalcanzables")
+    """Quita variables (y terminales) que no son alcanzables desde el
+    símbolo inicial. Usa calcular_alcanzables para el BFS."""
+    alcanzables = calcular_alcanzables(g)
+    inalcanzables_vars = set(g.variables) - alcanzables
+    inalcanzables_terms = set(g.terminales) - alcanzables
 
+    nueva = g.copia()
+    for v in list(inalcanzables_vars):
+        nueva.quitar_variable(v)
+    for t in list(inalcanzables_terms):
+        nueva.terminales.remove(t)
+
+    orden = g.variables + g.terminales
+    identificados = [
+        f"Símbolos alcanzables: {_conjunto_a_texto(alcanzables, orden)}",
+        f"Variables inalcanzables: {_conjunto_a_texto(inalcanzables_vars, g.variables)}",
+        f"Terminales inalcanzables: {_conjunto_a_texto(inalcanzables_terms, g.terminales)}",
+    ]
+    return nueva, crear_paso("Eliminación de variables inalcanzables", g, nueva, identificados)
 
 
 # ======================================================================
