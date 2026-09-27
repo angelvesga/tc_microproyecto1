@@ -279,9 +279,41 @@ def eliminar_variables_inalcanzables(g):
 # ======================================================================
 
 def sustituir_terminales(g):
-    """Pendiente."""
-    raise NotImplementedError("sustituir_terminales")
+    """En cuerpos de longitud >= 2, reemplaza cada terminal 'a' por una
+    variable auxiliar Xk con producción Xk -> a.
 
+    Reutiliza la misma variable para el mismo terminal (un dict
+    terminal -> variable), evitando duplicar Xi -> a.
+    Recorre g.todas_las_producciones() para que los nombres de variables
+    sean siempre los mismos (RNF11)."""
+    nueva = g.copia()
+    nueva.producciones = {}
+    terminal_a_var = {}
+
+    for cabeza, cuerpo in g.todas_las_producciones():
+        if len(cuerpo) < 2:
+            nueva.agregar_produccion(cabeza, cuerpo)
+            continue
+        nuevo_cuerpo = []
+        for s in cuerpo:
+            if g.es_terminal(s):
+                if s not in terminal_a_var:
+                    xv = nueva.nueva_variable()
+                    terminal_a_var[s] = xv
+                    nueva.agregar_produccion(xv, (s,))
+                nuevo_cuerpo.append(terminal_a_var[s])
+            else:
+                nuevo_cuerpo.append(s)
+        nueva.agregar_produccion(cabeza, tuple(nuevo_cuerpo))
+
+    if terminal_a_var:
+        identificados = [
+            f"Terminal '{t}' sustituido por variable {v}"
+            for t, v in sorted(terminal_a_var.items())
+        ]
+    else:
+        identificados = ["No se encontraron terminales en cuerpos de longitud >= 2."]
+    return nueva, crear_paso("Sustitución de terminales", g, nueva, identificados)
 
 def reducir_producciones_largas(g):
     """Pendiente."""
