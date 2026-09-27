@@ -53,9 +53,63 @@ def calcular_anulables(g):
     return anulables
 
 def eliminar_producciones_nulas(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_producciones_nulas")
+    """Elimina producciones nulas generando todas las versiones posibles
+    de cada producción según qué variables anulables se omiten o conservan.
 
+    Para A -> α con k posiciones anulables en α, se generan 2^k versiones
+    (itertools.product([True, False], repeat=k)), descartando las vacías.
+
+    Tratamiento de ε (RNF07):
+      - Si el inicial es anulable y aparece en algún lado derecho, se crea
+        un nuevo símbolo inicial S0 -> S | ε (S0 va primero en variables).
+      - Si el inicial es anulable y NO aparece en lados derechos, se
+        conserva S -> ε."""
+    anulables = calcular_anulables(g)
+    nueva = g.copia()
+    nueva.producciones = {}
+
+    for cabeza, cuerpo in g.todas_las_producciones():
+        if not cuerpo:
+            # Saltar las producciones A -> ε originales; se tratan al final.
+            continue
+        posiciones_anulables = [i for i, s in enumerate(cuerpo) if s in anulables]
+        k = len(posiciones_anulables)
+        # 2^k combinaciones: True = conservar el símbolo anulable, False = omitir
+        for conservar in itertools_product([True, False], repeat=k):
+            nuevo_cuerpo = tuple(
+                s for i, s in enumerate(cuerpo)
+                if i not in posiciones_anulables
+                or conservar[posiciones_anulables.index(i)]
+            )
+            if nuevo_cuerpo:
+                nueva.agregar_produccion(cabeza, nuevo_cuerpo)
+
+    # Tratamiento de ε (RNF07)
+    if g.inicial in anulables:
+        inicial_en_derecha = any(
+            g.inicial in cuerpo
+            for _, cuerpo in g.todas_las_producciones()
+        )
+        if inicial_en_derecha:
+            s0 = nueva.variable_con_base(g.inicial + "0")
+            nueva.variables.remove(s0)
+            nueva.variables.insert(0, s0)
+            nueva.inicial = s0
+            nueva.agregar_produccion(s0, (g.inicial,))
+            nueva.agregar_produccion(s0, ())
+            decision_eps = f"nuevo símbolo inicial {s0} -> {g.inicial} | ε"
+        else:
+            nueva.agregar_produccion(g.inicial, ())
+            decision_eps = f"se conserva {g.inicial} -> ε (inicial no aparece en lados derechos)"
+    else:
+        decision_eps = "el lenguaje no contiene ε"
+
+    orden = g.variables + g.terminales
+    identificados = [
+        f"Variables anulables: {_conjunto_a_texto(anulables, orden)}",
+        f"Decisión ε: {decision_eps}",
+    ]
+    return nueva, crear_paso("Eliminación de producciones nulas", g, nueva, identificados)
 
 
 # ======================================================================
