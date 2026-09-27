@@ -49,6 +49,38 @@ def prueba_validacion_correcta():
     assert validar_gramatica(g(EJEMPLO_NULAS)) == []
 
 
+def prueba_anulables():
+    # S no es anulable: S -> A S A necesita a S, y S -> a B tiene un terminal.
+    assert tr.calcular_anulables(g(EJEMPLO_NULAS)) == {"A", "B"}
+
+
+EJEMPLO_EPSILON = """
+V: S
+T: a b
+S: S
+P:
+S -> a S b | ε
+"""
+
+
+def prueba_eliminar_nulas():
+    nueva, paso = tr.eliminar_producciones_nulas(g(EJEMPLO_NULAS))
+    assert nueva.inicial == "S"
+    assert nueva.producciones["S"] == {
+        ("A", "S", "A"), ("S", "A"), ("A", "S"), ("S",), ("a", "B"), ("a",)}
+    assert nueva.producciones["B"] == {("b",)}
+    assert ("B", ()) in paso.eliminadas
+
+
+def prueba_epsilon_en_el_lenguaje():
+    # S es anulable y aparece a la derecha -> nuevo inicial S0 -> S | ε
+    nueva, _ = tr.eliminar_producciones_nulas(g(EJEMPLO_EPSILON))
+    assert nueva.inicial == "S0"
+    assert nueva.variables[0] == "S0"
+    assert nueva.producciones["S0"] == {("S",), ()}
+    assert nueva.producciones["S"] == {("a", "S", "b"), ("a", "b")}
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}
