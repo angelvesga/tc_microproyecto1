@@ -95,6 +95,23 @@ def prueba_eliminar_inutiles():
     assert "B" not in sin_inutiles.variables
 
 
+def prueba_eliminar_inalcanzables():
+    nueva, paso = tr.eliminar_variables_inalcanzables(g(EJEMPLO_INUTILES))
+    assert "D" not in nueva.variables
+    assert "D" not in nueva.producciones
+    assert ("D", ("a",)) in paso.eliminadas
+
+
+def prueba_eliminar_inutiles_e_inalcanzables():
+    gramatica = g(EJEMPLO_INUTILES)
+    sin_inutiles, _ = tr.eliminar_variables_inutiles(gramatica)
+    assert "B" not in sin_inutiles.variables
+    final, _ = tr.eliminar_variables_inalcanzables(sin_inutiles)
+    # Al quitar B, S -> A B desaparece y A queda inalcanzable.
+    assert final.variables == ["S"]
+    assert final.producciones == {"S": {("a",)}}
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}
