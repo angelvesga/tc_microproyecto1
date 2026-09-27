@@ -128,6 +128,96 @@ def prueba_reproducible():
     assert a.a_texto() == b.a_texto()
 
 
+# ======================================================================
+# CASOS ADICIONALES
+# ======================================================================
+
+EJEMPLO_CICLO_UNITARIAS = """
+V: S A B
+T: a
+S: S
+P:
+S -> A | a
+A -> B
+B -> A | a
+"""
+
+EJEMPLO_LENGUAJE_VACIO = """
+V: S A
+T: a
+S: S
+P:
+S -> A a
+A -> A a
+"""
+
+EJEMPLO_TERMINALES_REPETIDOS = """
+V: S A
+T: a b
+S: S
+P:
+S -> a A b
+A -> a b a
+"""
+
+EJEMPLO_PRODUCCION_LARGA = """
+V: S
+T: a b c d e
+S: S
+P:
+S -> a b c d e
+"""
+
+
+def prueba_ciclo_unitarias():
+    """El ciclo A -> B -> A no debe provocar bucle infinito ni
+    dejar producciones unitarias en el resultado."""
+    base, _ = tr.eliminar_producciones_nulas(g(EJEMPLO_CICLO_UNITARIAS))
+    nueva, _ = tr.eliminar_producciones_unitarias(base)
+    for cabeza, cuerpo in nueva.todas_las_producciones():
+        assert not (len(cuerpo) == 1 and nueva.es_variable(cuerpo[0])), (cabeza, cuerpo)
+    for var in ("S", "A", "B"):
+        assert ("a",) in nueva.producciones.get(var, set()), var
+
+
+def prueba_lenguaje_vacio():
+    """Si el símbolo inicial no genera ninguna cadena, el proceso no
+    debe fallar y debe registrar el mensaje de lenguaje vacío."""
+    nueva, paso = tr.eliminar_variables_inutiles(g(EJEMPLO_LENGUAJE_VACIO))
+    assert tr.calcular_generadoras(g(EJEMPLO_LENGUAJE_VACIO)) == set()
+    assert any("vacío" in linea.lower() for linea in paso.identificados)
+
+
+def prueba_terminales_repetidos():
+    """El mismo terminal debe recibir siempre la misma variable auxiliar,
+    sin crear duplicados como X1 -> a y X2 -> a."""
+    from historial import Historial
+    final, pendiente = tr.ejecutar_proceso_completo(
+        g(EJEMPLO_TERMINALES_REPETIDOS), Historial()
+    )
+    assert pendiente is None
+    assert validar_fnc(final) == [], validar_fnc(final)
+    var_por_terminal = {}
+    for cabeza, cuerpo in final.todas_las_producciones():
+        if len(cuerpo) == 1 and final.es_terminal(cuerpo[0]):
+            t = cuerpo[0]
+            assert t not in var_por_terminal or var_por_terminal[t] == cabeza, \
+                f"Terminal '{t}' tiene más de una variable: {var_por_terminal[t]} y {cabeza}"
+            var_por_terminal[t] = cabeza
+
+
+def prueba_produccion_larga():
+    """Una producción de longitud 5 debe quedar en FNC tras el proceso."""
+    from historial import Historial
+    final, pendiente = tr.ejecutar_proceso_completo(
+        g(EJEMPLO_PRODUCCION_LARGA), Historial()
+    )
+    assert pendiente is None
+    assert validar_fnc(final) == [], validar_fnc(final)
+    for cabeza, cuerpo in final.todas_las_producciones():
+        assert len(cuerpo) in (1, 2), f"{cabeza} -> {cuerpo}: longitud {len(cuerpo)}"
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}
