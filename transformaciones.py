@@ -117,14 +117,57 @@ def eliminar_producciones_nulas(g):
 # ======================================================================
 
 def calcular_pares_unitarios(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_pares_unitarios")
+    """Calcula los pares (A, B) tales que A =>* B usando solo producciones
+    unitarias, incluyendo los reflexivos (A, A). Funciona con ciclos.
 
+    1. Inicializar con {(A, A) para toda A en V}.
+    2. Si (A, B) está y B -> C es unitaria (len=1, C variable), agregar (A, C).
+    3. Repetir hasta punto fijo."""
+    pares = {(v, v) for v in g.variables}
+    cambio = True
+    while cambio:
+        cambio = False
+        nuevos = set()
+        for a, b in pares:
+            for cabeza, cuerpo in g.todas_las_producciones():
+                if cabeza == b and len(cuerpo) == 1 and g.es_variable(cuerpo[0]):
+                    c = cuerpo[0]
+                    if (a, c) not in pares:
+                        nuevos.add((a, c))
+                        cambio = True
+        pares |= nuevos
+    return pares
 
 def eliminar_producciones_unitarias(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_producciones_unitarias")
+    """Para cada par unitario (A, B), agrega A -> α por cada producción
+    NO unitaria B -> α. S0 -> ε no es unitaria y se conserva."""
+    pares = calcular_pares_unitarios(g)
+    nueva = g.copia()
+    nueva.producciones = {}
 
+    unitarias_orig = [
+        (cab, cuerpo)
+        for cab, cuerpo in g.todas_las_producciones()
+        if len(cuerpo) == 1 and g.es_variable(cuerpo[0])
+    ]
+
+    for a, b in sorted(pares):
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza != b:
+                continue
+            es_unitaria = len(cuerpo) == 1 and g.es_variable(cuerpo[0])
+            if not es_unitaria:
+                nueva.agregar_produccion(a, cuerpo)
+
+    texto_unitarias = ", ".join(
+        g.produccion_a_texto(c, b) for c, b in unitarias_orig
+    ) or "∅"
+    texto_pares = ", ".join(f"({a}, {b})" for a, b in sorted(pares))
+    identificados = [
+        f"Producciones unitarias: {texto_unitarias}",
+        f"Pares unitarios: {{ {texto_pares} }}",
+    ]
+    return nueva, crear_paso("Eliminación de producciones unitarias", g, nueva, identificados)
 
 
 # ======================================================================
