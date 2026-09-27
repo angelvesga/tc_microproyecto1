@@ -192,9 +192,39 @@ def calcular_generadoras(g):
     return generadoras
 
 def eliminar_variables_inutiles(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_variables_inutiles")
+    """Elimina variables no generadoras y todas las producciones que las
+    usan en el lado derecho.
 
+    Si el símbolo inicial no es generador, el lenguaje es vacío: se
+    informa en 'identificados' sin que el programa falle."""
+    generadoras = calcular_generadoras(g)
+    no_generadoras = set(g.variables) - generadoras
+
+    nueva = g.copia()
+
+    identificados_base = [
+        f"Variables generadoras: {_conjunto_a_texto(generadoras, g.variables)}",
+        f"Variables no generadoras: {_conjunto_a_texto(no_generadoras, g.variables)}",
+    ]
+
+    if g.inicial not in generadoras:
+        identificados_base.append(
+            "El lenguaje es vacío: el símbolo inicial no genera ninguna cadena terminal."
+        )
+        return nueva, crear_paso("Eliminación de variables inútiles", g, nueva, identificados_base)
+
+    for v in list(no_generadoras):
+        nueva.quitar_variable(v)
+
+    for cabeza in list(nueva.producciones):
+        cuerpos_a_quitar = [
+            cuerpo for cuerpo in list(nueva.producciones.get(cabeza, set()))
+            if any(s in no_generadoras for s in cuerpo)
+        ]
+        for cuerpo in cuerpos_a_quitar:
+            nueva.quitar_produccion(cabeza, cuerpo)
+
+    return nueva, crear_paso("Eliminación de variables inútiles", g, nueva, identificados_base)
 
 
 # ======================================================================

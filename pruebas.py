@@ -90,6 +90,11 @@ def prueba_eliminar_unitarias():
     assert () in nueva.producciones["S0"]   # S0 -> ε se conserva
 
 
+def prueba_eliminar_inutiles():
+    sin_inutiles, _ = tr.eliminar_variables_inutiles(g(EJEMPLO_INUTILES))
+    assert "B" not in sin_inutiles.variables
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}
