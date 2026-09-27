@@ -232,9 +232,25 @@ def eliminar_variables_inutiles(g):
 # ======================================================================
 
 def calcular_alcanzables(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_alcanzables")
+    """Recorre en BFS desde el símbolo inicial para hallar todos los
+    símbolos alcanzables (variables y terminales).
 
+    1. alcanzables = {g.inicial}; pendientes = [g.inicial]
+    2. Por cada variable pendiente, agregar cada símbolo de sus cuerpos;
+       si es variable nueva, agregarla también a pendientes."""
+    alcanzables = {g.inicial}
+    pendientes = [g.inicial]
+    while pendientes:
+        variable = pendientes.pop(0)
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza != variable:
+                continue
+            for s in cuerpo:
+                if s not in alcanzables:
+                    alcanzables.add(s)
+                    if g.es_variable(s):
+                        pendientes.append(s)
+    return alcanzables
 
 def eliminar_variables_inalcanzables(g):
     """Pendiente."""
