@@ -33,9 +33,24 @@ def _conjunto_a_texto(simbolos, orden):
 # ======================================================================
 
 def calcular_anulables(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_anulables")
+    """Calcula el conjunto de variables que derivan ε por punto fijo.
 
+    Una variable A es anulable si:
+      - Tiene A -> ε (cuerpo vacío), o
+      - Tiene A -> X1 ... Xn donde todos los Xi ya son anulables.
+
+    Se itera hasta que el conjunto no crezca más (punto fijo)."""
+    anulables = set()
+    cambio = True
+    while cambio:
+        cambio = False
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza not in anulables:
+                # all() es True para cuerpo vacío (), que representa A -> ε
+                if all(s in anulables for s in cuerpo):
+                    anulables.add(cabeza)
+                    cambio = True
+    return anulables
 
 def eliminar_producciones_nulas(g):
     """Pendiente."""
