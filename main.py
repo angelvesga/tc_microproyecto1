@@ -1,6 +1,10 @@
 """
 main.py
-Menú de consola del aplicativo (sección 12 del enunciado, RF20).
+Menú de consola del aplicativo (sección 12 del enunciado).
+
+Uso:
+    python main.py                        -> menú interactivo
+    python main.py ejemplos/ejemplo1.txt  -> modo automático con ese archivo
 """
 
 import sys
@@ -8,7 +12,7 @@ import sys
 import transformaciones as tr
 from historial import Historial
 from lector import leer_desde_archivo, leer_desde_consola
-from validador import validar_gramatica
+from validador import validar_fnc, validar_gramatica
 
 MENU = """
 ========== DEPURACIÓN Y FORMA NORMAL DE CHOMSKY ==========
@@ -33,12 +37,16 @@ class Aplicacion:
         self.reiniciar()
 
     def reiniciar(self):
-        self.original = None
-        self.actual = None
+        """RF20: borra todo el estado para empezar con otra gramática."""
+        self.original = None     # gramática tal como la ingresó el usuario
+        self.actual = None       # gramática después de la última etapa
         self.errores_sintaxis = []
         self.validada = False
         self.historial = Historial()
 
+    # ------------------------------------------------------------------
+    # Ingreso y validación
+    # ------------------------------------------------------------------
     def ingresar(self):
         forma = input("¿Cómo desea ingresarla? 1) Escribirla  2) Cargar archivo: ").strip()
         try:
@@ -68,42 +76,75 @@ class Aplicacion:
         if errores:
             self.validada = False
             print("\nLa gramática tiene errores. Corríjalos antes de transformarla:")
-            for error in dict.fromkeys(errores):
+            for error in dict.fromkeys(errores):   # sin repetidos, en orden
                 print("  " + error)
         else:
             self.validada = True
             print("\nLa gramática es válida.")
 
+    # ------------------------------------------------------------------
+    # Etapas
+    # ------------------------------------------------------------------
     def ejecutar_etapa(self, *funciones):
+        """Aplica una o varias etapas sobre la gramática actual (modo paso a paso)."""
         if not self._lista_para_transformar():
             return
         for funcion in funciones:
             try:
                 nueva, paso = funcion(self.actual)
             except NotImplementedError:
-                print(f"\n[Pendiente] La etapa '{funcion.__name__}' aún no está implementada.")
+                print(f"\n[Pendiente] La etapa '{funcion.__name__}' aún no está "
+                      f"implementada (ver TODO en transformaciones.py).")
                 return
             self.actual = nueva
             self.historial.agregar(paso)
             print(paso.a_texto(len(self.historial.pasos)))
 
     def proceso_completo(self):
+        """Modo automático: siempre parte de la gramática original."""
         if not self._lista_para_transformar():
             return
         self.historial.limpiar()
         self.actual, pendiente = tr.ejecutar_proceso_completo(self.original.copia(), self.historial)
         print(self.historial.a_texto())
         if pendiente:
-            print(f"[Pendiente] El proceso se detuvo en '{pendiente}'.")
+            print(f"[Pendiente] El proceso se detuvo en '{pendiente}' "
+                  f"(ver TODO en transformaciones.py).")
         else:
             self.mostrar_final()
+
+    def mostrar_historial(self):
+        texto = self.historial.a_texto()
+        print(texto)
+        respuesta = input("\n¿Desea guardar el historial en un archivo .txt? (s/n): ").strip().lower()
+        if respuesta in ("s", "si", "sí", "y", "yes"):
+            nombre = input("Nombre del archivo (sin extensión): ").strip()
+            if not nombre:
+                nombre = "historial"
+            ruta = nombre + ".txt"
+            try:
+                with open(ruta, "w", encoding="utf-8") as archivo:
+                    archivo.write(texto)
+                print(f"Historial guardado en {ruta}.")
+            except OSError as error:
+                print(f"Error al guardar: {error}.")
 
     def mostrar_final(self):
         if not self._hay_gramatica():
             return
         print("\nGRAMÁTICA FINAL:")
         print(self.actual)
+        violaciones = validar_fnc(self.actual)
+        if violaciones:
+            print("\nLa gramática todavía NO está en Forma Normal de Chomsky:")
+            for v in violaciones:
+                print("  - " + v)
+        else:
+            print("\nValidación automática: la gramática está en Forma Normal de Chomsky.")
 
+    # ------------------------------------------------------------------
+    # Utilidades
+    # ------------------------------------------------------------------
     def _hay_gramatica(self):
         if self.original is None:
             print("Primero ingrese una gramática (opción 1).")
@@ -130,7 +171,7 @@ class Aplicacion:
             "8": lambda: self.ejecutar_etapa(tr.sustituir_terminales,
                                              tr.reducir_producciones_largas),
             "9": self.proceso_completo,
-            "10": lambda: print(self.historial.a_texto()),
+            "10": self.mostrar_historial,
             "11": self.mostrar_final,
             "12": lambda: (self.reiniciar(), self.ingresar()),
         }
@@ -150,6 +191,7 @@ class Aplicacion:
 def main():
     app = Aplicacion()
     if len(sys.argv) > 1:
+        # Modo automático directo: python main.py archivo.txt
         gramatica, errores = leer_desde_archivo(sys.argv[1])
         app.cargar(gramatica, errores)
         if app.validada:
