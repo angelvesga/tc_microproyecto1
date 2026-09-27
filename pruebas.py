@@ -112,6 +112,22 @@ def prueba_eliminar_inutiles_e_inalcanzables():
     assert final.producciones == {"S": {("a",)}}
 
 
+def prueba_proceso_completo_en_fnc():
+    from historial import Historial
+    for texto in (EJEMPLO_NULAS, EJEMPLO_INUTILES, EJEMPLO_EPSILON):
+        final, pendiente = tr.ejecutar_proceso_completo(g(texto), Historial())
+        if pendiente:
+            raise NotImplementedError(pendiente)
+        assert validar_fnc(final) == [], validar_fnc(final)
+
+
+def prueba_reproducible():
+    from historial import Historial
+    a, _ = tr.ejecutar_proceso_completo(g(EJEMPLO_NULAS), Historial())
+    b, _ = tr.ejecutar_proceso_completo(g(EJEMPLO_NULAS), Historial())
+    assert a.a_texto() == b.a_texto()
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}
