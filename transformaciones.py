@@ -175,14 +175,56 @@ def eliminar_producciones_unitarias(g):
 # ======================================================================
 
 def calcular_generadoras(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_generadoras")
+    """Variables que derivan alguna cadena de terminales (incluyendo ε).
 
+    A es generadora si tiene A -> α donde cada símbolo de α es terminal o
+    ya es variable generadora. Un cuerpo vacío () también cuenta.
+    Se aplica punto fijo igual que calcular_anulables."""
+    generadoras = set()
+    cambio = True
+    while cambio:
+        cambio = False
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza not in generadoras:
+                if all(g.es_terminal(s) or s in generadoras for s in cuerpo):
+                    generadoras.add(cabeza)
+                    cambio = True
+    return generadoras
 
 def eliminar_variables_inutiles(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_variables_inutiles")
+    """Elimina variables no generadoras y todas las producciones que las
+    usan en el lado derecho.
 
+    Si el símbolo inicial no es generador, el lenguaje es vacío: se
+    informa en 'identificados' sin que el programa falle."""
+    generadoras = calcular_generadoras(g)
+    no_generadoras = set(g.variables) - generadoras
+
+    nueva = g.copia()
+
+    identificados_base = [
+        f"Variables generadoras: {_conjunto_a_texto(generadoras, g.variables)}",
+        f"Variables no generadoras: {_conjunto_a_texto(no_generadoras, g.variables)}",
+    ]
+
+    if g.inicial not in generadoras:
+        identificados_base.append(
+            "El lenguaje es vacío: el símbolo inicial no genera ninguna cadena terminal."
+        )
+        return nueva, crear_paso("Eliminación de variables inútiles", g, nueva, identificados_base)
+
+    for v in list(no_generadoras):
+        nueva.quitar_variable(v)
+
+    for cabeza in list(nueva.producciones):
+        cuerpos_a_quitar = [
+            cuerpo for cuerpo in list(nueva.producciones.get(cabeza, set()))
+            if any(s in no_generadoras for s in cuerpo)
+        ]
+        for cuerpo in cuerpos_a_quitar:
+            nueva.quitar_produccion(cabeza, cuerpo)
+
+    return nueva, crear_paso("Eliminación de variables inútiles", g, nueva, identificados_base)
 
 
 # ======================================================================
