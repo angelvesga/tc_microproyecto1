@@ -1,0 +1,8 @@
+# Gramática con el mismo terminal en múltiples producciones largas
+# Sirve para verificar que se reutiliza la misma variable para cada terminal
+V: S A
+T: a b
+S: S
+P:
+S -> a A b
+A -> a b a

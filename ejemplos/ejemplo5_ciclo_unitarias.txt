@@ -1,0 +1,8 @@
+# Gramática con ciclo de producciones unitarias: A -> B y B -> A
+V: S A B
+T: a
+S: S
+P:
+S -> A | a
+A -> B
+B -> A | a
