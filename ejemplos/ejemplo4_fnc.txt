@@ -1,0 +1,8 @@
+# Gramática sin nulas ni unitarias: sirve para probar solo la conversión a FNC
+V: E T F
+T: + * ( ) id
+S: E
+P:
+E -> E + T | T * F | ( E ) | id
+T -> T * F | ( E ) | id
+F -> ( E ) | id

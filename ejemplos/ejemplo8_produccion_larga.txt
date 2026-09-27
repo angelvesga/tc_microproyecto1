@@ -1,0 +1,7 @@
+# Gramática con una producción de longitud 5
+# Verifica la partición correcta en binarias
+V: S
+T: a b c d e
+S: S
+P:
+S -> a b c d e

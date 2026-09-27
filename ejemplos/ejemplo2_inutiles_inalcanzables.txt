@@ -1,0 +1,11 @@
+# B no genera ninguna cadena terminal (inútil) y D es inalcanzable.
+# Al quitar B, la variable A también queda inalcanzable.
+V: S A B C D
+T: a b
+S: S
+P:
+S -> A B | a
+A -> b
+B -> B C
+C -> a
+D -> a
