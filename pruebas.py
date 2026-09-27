@@ -81,6 +81,15 @@ def prueba_epsilon_en_el_lenguaje():
     assert nueva.producciones["S"] == {("a", "S", "b"), ("a", "b")}
 
 
+def prueba_eliminar_unitarias():
+    for texto in (EJEMPLO_NULAS, EJEMPLO_EPSILON):
+        base, _ = tr.eliminar_producciones_nulas(g(texto))
+        nueva, _ = tr.eliminar_producciones_unitarias(base)
+        for cabeza, cuerpo in nueva.todas_las_producciones():
+            assert not (len(cuerpo) == 1 and nueva.es_variable(cuerpo[0])), (cabeza, cuerpo)
+    assert () in nueva.producciones["S0"]   # S0 -> ε se conserva
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}

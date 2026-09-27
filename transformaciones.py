@@ -139,9 +139,35 @@ def calcular_pares_unitarios(g):
     return pares
 
 def eliminar_producciones_unitarias(g):
-    """Pendiente."""
-    raise NotImplementedError("eliminar_producciones_unitarias")
+    """Para cada par unitario (A, B), agrega A -> α por cada producción
+    NO unitaria B -> α. S0 -> ε no es unitaria y se conserva."""
+    pares = calcular_pares_unitarios(g)
+    nueva = g.copia()
+    nueva.producciones = {}
 
+    unitarias_orig = [
+        (cab, cuerpo)
+        for cab, cuerpo in g.todas_las_producciones()
+        if len(cuerpo) == 1 and g.es_variable(cuerpo[0])
+    ]
+
+    for a, b in sorted(pares):
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza != b:
+                continue
+            es_unitaria = len(cuerpo) == 1 and g.es_variable(cuerpo[0])
+            if not es_unitaria:
+                nueva.agregar_produccion(a, cuerpo)
+
+    texto_unitarias = ", ".join(
+        g.produccion_a_texto(c, b) for c, b in unitarias_orig
+    ) or "∅"
+    texto_pares = ", ".join(f"({a}, {b})" for a, b in sorted(pares))
+    identificados = [
+        f"Producciones unitarias: {texto_unitarias}",
+        f"Pares unitarios: {{ {texto_pares} }}",
+    ]
+    return nueva, crear_paso("Eliminación de producciones unitarias", g, nueva, identificados)
 
 
 # ======================================================================
