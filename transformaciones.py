@@ -175,9 +175,21 @@ def eliminar_producciones_unitarias(g):
 # ======================================================================
 
 def calcular_generadoras(g):
-    """Pendiente."""
-    raise NotImplementedError("calcular_generadoras")
+    """Variables que derivan alguna cadena de terminales (incluyendo ε).
 
+    A es generadora si tiene A -> α donde cada símbolo de α es terminal o
+    ya es variable generadora. Un cuerpo vacío () también cuenta.
+    Se aplica punto fijo igual que calcular_anulables."""
+    generadoras = set()
+    cambio = True
+    while cambio:
+        cambio = False
+        for cabeza, cuerpo in g.todas_las_producciones():
+            if cabeza not in generadoras:
+                if all(g.es_terminal(s) or s in generadoras for s in cuerpo):
+                    generadoras.add(cabeza)
+                    cambio = True
+    return generadoras
 
 def eliminar_variables_inutiles(g):
     """Pendiente."""
