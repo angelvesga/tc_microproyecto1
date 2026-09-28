@@ -1,0 +1,10 @@
+V: A B C D E F G
+T: 0 1 2
+S: C
+P:
+A -> GBG1 | GBD1 | BCD | 1
+B -> A2ABD | CE | eps | 1
+C -> BCD | 1E2 | A | 2
+D -> E | E10 | DD | 2
+E -> BC | B | DE | 2E1 | 0 | eps
+G -> BCE | ABD

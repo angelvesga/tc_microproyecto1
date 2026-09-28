@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GLC a Forma Normal de Chomsky</title>
+  <meta name="description" content="Depuración de gramáticas libres de contexto y conversión a Forma Normal de Chomsky, paso a paso.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header class="barra">
+    <div class="barra__contenido">
+      <div class="marca">
+        <span class="marca__logo" aria-hidden="true">G⇒</span>
+        <div>
+          <h1 class="marca__titulo">GLC a Forma Normal de Chomsky</h1>
+          <p class="marca__sub">Depuración y conversión paso a paso</p>
+        </div>
+      </div>
+      <p class="barra__curso">Teoría de la Computación · UFPS</p>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <!-- 1. Entrada -->
+    <section class="tarjeta" aria-labelledby="t-entrada">
+      <div class="tarjeta__cabecera">
+        <h2 id="t-entrada"><span class="num">1</span> Ingresa la gramática</h2>
+        <label class="selector">
+          <span>Cargar un ejemplo</span>
+          <select id="ejemplos" aria-label="Cargar un ejemplo"></select>
+        </label>
+      </div>
+
+      <div class="entrada">
+        <div class="entrada__editor">
+          <label for="texto" class="etiqueta">Gramática G = (V, T, P, S)</label>
+          <textarea id="texto" spellcheck="false" rows="11" aria-describedby="ayuda-formato"></textarea>
+          <div class="acciones">
+            <button id="btn-convertir" class="boton boton--primario" type="button">Validar y convertir</button>
+            <span class="atajo">o presiona <kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+          </div>
+          <div id="errores" class="errores" role="alert" hidden></div>
+        </div>
+        <aside class="entrada__ayuda" id="ayuda-formato">
+          <h3>Formato</h3>
+          <pre class="ejemplo-formato">V: S A B
+T: a b
+S: S
+P:
+S -&gt; A S A | a B
+A -&gt; B | S
+B -&gt; b | ε</pre>
+          <ul>
+            <li><b>V</b> variables, <b>T</b> terminales, <b>S</b> símbolo inicial, <b>P</b> producciones.</li>
+            <li>Separa los símbolos con espacios: <code>a B</code>.</li>
+            <li>Alternativas con <code>|</code>. La cadena vacía se escribe <code>ε</code> o <code>eps</code>.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 2. Proceso -->
+    <section class="tarjeta" id="proceso" aria-labelledby="t-proceso" hidden>
+      <div class="tarjeta__cabecera">
+        <h2 id="t-proceso"><span class="num">2</span> Proceso de conversión</h2>
+        <div class="modo" role="group" aria-label="Modo de visualización">
+          <button type="button" class="modo__op activo" data-modo="paso" aria-pressed="true">Paso a paso</button>
+          <button type="button" class="modo__op" data-modo="todo" aria-pressed="false">Ver todo</button>
+        </div>
+      </div>
+
+      <nav class="cadena" id="cadena" aria-label="Etapas del proceso"></nav>
+
+      <div id="vista"></div>
+
+      <div class="navegacion" id="navegacion">
+        <button id="btn-anterior" class="boton" type="button">← Anterior</button>
+        <span class="navegacion__ayuda">Usa las flechas <kbd>←</kbd> <kbd>→</kbd> del teclado</span>
+        <button id="btn-siguiente" class="boton boton--primario" type="button">Siguiente →</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    Microproyecto #1 · Johan Steven Bueno Rojas · Kevin David Arias Villamizar · Angel Johany Vesga Sarmiento · Docente: Janeth Parada
+  </footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
