@@ -28,6 +28,7 @@ class Gramatica:
         self.inicial = inicial
         self.producciones = {}          # dict[str, set[tuple[str, ...]]]
         self.contador_auxiliares = 0    # para generar X1, X2, X3, ...
+        self.implicitas = []            # variables usadas en un cuerpo sin declarar en V
 
     # ------------------------------------------------------------------
     # Consultas básicas

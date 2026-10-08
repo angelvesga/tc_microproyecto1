@@ -1,0 +1,7 @@
+# Errores a propósito: el símbolo inicial X no está en V y el terminal c no fue declarado
+V: S A
+T: a b
+S: X
+P:
+S -> AD | a c
+A -> b

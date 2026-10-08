@@ -1,7 +1,0 @@
-# Gramática con errores a propósito, para probar la validación
-V: S A
-T: a b
-S: X
-P:
-S -> AD | a c
-A -> b

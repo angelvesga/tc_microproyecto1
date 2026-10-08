@@ -41,8 +41,10 @@ def prueba_validacion_errores():
     gramatica, _ = gramatica_desde_texto("V: S A\nT: a b\nS: X\nP:\nS -> AD | a c\nA -> b")
     errores = validar_gramatica(gramatica)
     assert "Error: el símbolo inicial X no pertenece al conjunto de variables." in errores
-    assert any("la variable D utilizada en la producción S -> A D" in e for e in errores)
     assert any("el símbolo c no fue declarado como terminal" in e for e in errores)
+    # D (mayúscula, usada sin declarar) ya no es un error: es variable implícita
+    assert not any("variable D" in e for e in errores)
+    assert "D" in gramatica.variables and gramatica.implicitas == ["D"]
 
 
 def prueba_validacion_correcta():
@@ -266,7 +268,7 @@ def prueba_inutiles_e_inalcanzables_no_son_error():
     NO son errores de validación, y el proceso termina en FNC válida."""
     from historial import Historial
     for texto in (EJEMPLO_INUTILES, EJEMPLO_INUTILES_Y_SOBRANTES, EJEMPLO_LENGUAJE_VACIO,
-                  EJEMPLO_INICIAL_SIN_GENERAR, "V: S A\nT: a b\nS: S\nP:\nA -> a"):
+                  EJEMPLO_INICIAL_SIN_GENERAR, "V: S A\nT: a b\nS: S\nP:\nS -> a\nA -> a"):
         gramatica = g(texto)
         assert validar_gramatica(gramatica) == [], texto
         final, pendiente = tr.ejecutar_proceso_completo(gramatica, Historial())
@@ -301,6 +303,42 @@ def prueba_nulas_no_deja_variables_sin_producciones():
         g("V: S C\nT: a\nS: S\nP:\nS -> a C | a\nC -> C | ε"), Historial())
     assert final.producciones == {"S": {("a",)}}
     assert validar_fnc(final) == []
+
+
+EJEMPLO_VARIABLE_NO_DECLARADA = """
+V: S A B C D
+T: a b
+S: S
+P:
+S -> A S A | a B
+A -> B C B | F | S
+B -> b | ε
+"""
+
+
+def prueba_variable_no_declarada_se_elimina():
+    """F se usa en A -> F sin estar en V: no es error, se registra como implícita
+    y la etapa de inútiles la quita de V junto con A -> F."""
+    from historial import Historial
+    gramatica = g(EJEMPLO_VARIABLE_NO_DECLARADA)
+    assert validar_gramatica(gramatica) == []
+    assert gramatica.implicitas == ["F"] and "F" in gramatica.variables
+    sin_inutiles, paso = tr.eliminar_variables_inutiles(gramatica)
+    assert "F" not in sin_inutiles.variables
+    assert ("A", ("F",)) in paso.eliminadas
+    assert not any("F" in cuerpo for _, cuerpo in sin_inutiles.todas_las_producciones())
+    assert any("implícitas" in x and "F" in x for x in paso.identificados)
+    final, pendiente = tr.ejecutar_proceso_completo(gramatica, Historial())
+    assert pendiente is None
+    assert "F" not in final.variables
+    assert validar_fnc(final) == []
+
+
+def prueba_errores_reales_siguen_siendo_errores():
+    assert any("no tiene producciones" in e for e in validar_gramatica(
+        g("V: S A\nT: a\nS: S\nP:\nA -> a")))
+    assert any("no fue declarado como terminal" in e for e in validar_gramatica(
+        g("V: S\nT: a\nS: S\nP:\nS -> a b")))
 
 
 if __name__ == "__main__":

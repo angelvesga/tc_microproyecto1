@@ -20,6 +20,7 @@ Formato (igual en consola y en archivo):
 import re
 
 from gramatica import Gramatica
+from validador import _es_nombre_de_variable
 
 PALABRAS_EPSILON = {"ε", "eps", "epsilon", "λ", "lambda"}
 
@@ -88,6 +89,21 @@ def parsear_producciones(lineas, gramatica):
     return errores
 
 
+def registrar_variables_implicitas(gramatica):
+    """Una variable (símbolo que empieza en mayúscula) usada en un cuerpo pero
+    no declarada en V no es un error: se agrega a V como variable implícita.
+    Al no tener producciones es no generadora y la etapa de inútiles la
+    elimina junto con las producciones que la usan. Es el único punto donde
+    se hace, compartido por la consola y la web (ambas leen con
+    gramatica_desde_texto)."""
+    for _, cuerpo in gramatica.todas_las_producciones():
+        for simbolo in cuerpo:
+            if (simbolo not in gramatica.variables and simbolo not in gramatica.terminales
+                    and _es_nombre_de_variable(simbolo)):
+                gramatica.variables.append(simbolo)
+                gramatica.implicitas.append(simbolo)
+
+
 def gramatica_desde_texto(texto):
     """Construye una gramática a partir del texto completo con el formato
     descrito arriba. Devuelve (gramatica, errores_de_sintaxis)."""
@@ -118,6 +134,7 @@ def gramatica_desde_texto(texto):
         inicial=secciones["S"].strip() or None,
     )
     errores = parsear_producciones(lineas_producciones, gramatica)
+    registrar_variables_implicitas(gramatica)
     return gramatica, errores
 
 
