@@ -103,15 +103,6 @@ EXPLICACIONES = [
     },
 ]
 
-EJEMPLO_EPSILON = """# Cadena vacía en el lenguaje: S es anulable y aparece a la derecha
-V: S
-T: a b
-S: S
-P:
-S -> a S b | ε
-"""
-
-
 # ----------------------------------------------------------------------
 # Conversión a JSON
 # ----------------------------------------------------------------------
@@ -201,7 +192,6 @@ def ejemplos():
         with open(ruta, encoding="utf-8") as archivo:
             texto = archivo.read()
         lista.append({"nombre": os.path.basename(ruta), "texto": texto})
-    lista.append({"nombre": "cadena_vacia (S → aSb | ε)", "texto": EJEMPLO_EPSILON})
     for ej in lista:
         comentario = next((l.lstrip("# ").strip() for l in ej["texto"].splitlines()
                            if l.startswith("#")), "")

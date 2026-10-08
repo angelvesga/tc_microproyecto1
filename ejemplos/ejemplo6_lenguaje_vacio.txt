@@ -1,7 +1,0 @@
-# Gramática cuyo lenguaje es vacío: ninguna variable genera cadenas terminales
-V: S A
-T: a
-S: S
-P:
-S -> A a
-A -> A a

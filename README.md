@@ -10,7 +10,7 @@ Python 3.10 o superior. No usa librerías externas.
 
 ```bash
 python main.py                                   # menú interactivo
-python main.py ejemplos/ejemplo1_nulas_unitarias.txt   # modo automático con un archivo
+python main.py ejemplos/ejemplo1_inutiles_inalcanzables.txt   # modo automático con un archivo
 python pruebas.py                                # pruebas automáticas
 ```
 
@@ -42,7 +42,7 @@ B -> b | ε
 | `main.py` | Menú de 13 opciones, modo paso a paso y automático | Listo |
 | `transformaciones.py` | Algoritmos | Ver abajo |
 | `pruebas.py` | Pruebas de todas las etapas | Listo |
-| `ejemplos/` | Gramáticas de prueba (incluida una con errores) | Listo |
+| `ejemplos/` | 5 gramáticas, una por etapa: `ejemplo1_inutiles_inalcanzables`, `ejemplo2_nulas_unitarias`, `ejemplo3_terminales_repetidos`, `ejemplo4_chomsky` y `ejemplo5_errores` (con errores a propósito) | Listo |
 
 ### Algoritmos en `transformaciones.py`
 
@@ -75,7 +75,7 @@ La meta es: **19 ok, 0 pendientes, 0 fallas**.
 - Orden del proceso: inútiles → inalcanzables → nulas → unitarias → terminales → largas
   (en la web, el último paso se rotula «Chomsky»; en el menú de consola son las opciones 4 a 8).
   Las inalcanzables van después de las inútiles porque quitar una variable inútil
-  puede dejar otras inalcanzables (ver `ejemplo2`).
+  puede dejar otras inalcanzables (ver `ejemplo1`).
 - Variables o producciones inútiles/inalcanzables y terminales sin usar no son errores
   de validación. Si el símbolo inicial no genera ninguna cadena (lenguaje vacío), el paso
   de inútiles lo informa y la gramática queda solo con el inicial y sin producciones.

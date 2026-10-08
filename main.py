@@ -4,7 +4,7 @@ Menú de consola del aplicativo (sección 12 del enunciado).
 
 Uso:
     python main.py                        -> menú interactivo
-    python main.py ejemplos/ejemplo1.txt  -> modo automático con ese archivo
+    python main.py ejemplos/ejemplo1_inutiles_inalcanzables.txt  -> modo automático con ese archivo
 """
 
 import sys
