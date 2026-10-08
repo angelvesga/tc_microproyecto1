@@ -218,6 +218,91 @@ def prueba_produccion_larga():
         assert len(cuerpo) in (1, 2), f"{cabeza} -> {cuerpo}: longitud {len(cuerpo)}"
 
 
+# ======================================================================
+# ORDEN DE ETAPAS, INÚTILES/INALCANZABLES Y LENGUAJE VACÍO
+# ======================================================================
+
+EJEMPLO_INUTILES_Y_SOBRANTES = """
+V: S A B C D E
+T: a b c
+S: S
+P:
+S -> A a | B
+A -> a A | ε
+B -> B b
+C -> c
+D -> D
+"""
+
+EJEMPLO_INICIAL_SIN_GENERAR = """
+V: S A
+T: a
+S: S
+P:
+S -> S A
+A -> a
+"""
+
+
+def _variables_sin_producciones_usadas(final):
+    usadas = {s for _, cuerpo in final.todas_las_producciones() for s in cuerpo
+              if final.es_variable(s)}
+    return {v for v in usadas if v not in final.producciones}
+
+
+def prueba_orden_de_etapas():
+    assert [f.__name__ for f in tr.ETAPAS_EN_ORDEN] == [
+        "eliminar_variables_inutiles",
+        "eliminar_variables_inalcanzables",
+        "eliminar_producciones_nulas",
+        "eliminar_producciones_unitarias",
+        "sustituir_terminales",
+        "reducir_producciones_largas",
+    ]
+
+
+def prueba_inutiles_e_inalcanzables_no_son_error():
+    """Variables/producciones inútiles o inalcanzables y terminales sin usar
+    NO son errores de validación, y el proceso termina en FNC válida."""
+    from historial import Historial
+    for texto in (EJEMPLO_INUTILES, EJEMPLO_INUTILES_Y_SOBRANTES, EJEMPLO_LENGUAJE_VACIO,
+                  EJEMPLO_INICIAL_SIN_GENERAR, "V: S A\nT: a b\nS: S\nP:\nA -> a"):
+        gramatica = g(texto)
+        assert validar_gramatica(gramatica) == [], texto
+        final, pendiente = tr.ejecutar_proceso_completo(gramatica, Historial())
+        assert pendiente is None
+        assert validar_fnc(final) == [], validar_fnc(final)
+        assert _variables_sin_producciones_usadas(final) == set(), final.a_texto()
+
+
+def prueba_lenguaje_vacio_proceso_completo():
+    """Con lenguaje vacío se ejecutan los 6 pasos, el de inútiles lo informa
+    y la gramática final queda sin producciones y válida para la FNC."""
+    from historial import Historial
+    for texto in (EJEMPLO_LENGUAJE_VACIO, EJEMPLO_INICIAL_SIN_GENERAR):
+        historial = Historial()
+        final, pendiente = tr.ejecutar_proceso_completo(g(texto), historial)
+        assert pendiente is None
+        assert len(historial.pasos) == 6
+        assert any("vacío" in x.lower() for x in historial.pasos[0].identificados)
+        assert final.producciones == {}
+        assert final.variables == [final.inicial]
+        assert validar_fnc(final) == []
+
+
+def prueba_nulas_no_deja_variables_sin_producciones():
+    """S -> A a, A -> ε: A desaparece y no queda en ningún cuerpo; también
+    cuando la variable solo tiene A -> ε | A (ciclo que no genera nada)."""
+    from historial import Historial
+    final, _ = tr.eliminar_producciones_nulas(g("V: S A\nT: a\nS: S\nP:\nS -> A a\nA -> ε"))
+    assert final.producciones == {"S": {("a",)}}
+    assert final.variables == ["S"]
+    final, _ = tr.ejecutar_proceso_completo(
+        g("V: S C\nT: a\nS: S\nP:\nS -> a C | a\nC -> C | ε"), Historial())
+    assert final.producciones == {"S": {("a",)}}
+    assert validar_fnc(final) == []
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("prueba_")]
     resumen = {"ok": 0, "pendiente": 0, "falla": 0}

@@ -30,6 +30,8 @@ function h(tag, attrs, ...hijos) {
   return el;
 }
 
+const MAX_CARACTERES = 5000;   // mismo límite que app.py
+
 const SUBINDICES = "₀₁₂₃₄₅₆₇₈₉";
 const sub = (n) => String(n).split("").map((d) => SUBINDICES[+d]).join("");
 
@@ -57,6 +59,34 @@ async function cargarEjemplos() {
   } catch (e) {
     select.append(h("option", { value: "" }, "No se pudieron cargar los ejemplos"));
   }
+}
+
+/** Lee un .txt en el navegador, lo pone en el textarea y convierte (igual que un ejemplo). */
+function cargarArchivo(input) {
+  const archivo = input.files && input.files[0];
+  input.value = "";                       // permite volver a cargar el mismo archivo
+  if (!archivo) return;
+  if (!/\.txt$/i.test(archivo.name)) {
+    mostrarErrores(["Error: solo se admiten archivos .txt."]);
+    return;
+  }
+  if (archivo.size > MAX_CARACTERES * 4) {  // un carácter UTF-8 ocupa hasta 4 bytes
+    mostrarErrores([`Error: el archivo supera el máximo de ${MAX_CARACTERES} caracteres.`]);
+    return;
+  }
+  const lector = new FileReader();
+  lector.onload = () => {
+    const texto = String(lector.result);
+    if (texto.length > MAX_CARACTERES) {
+      mostrarErrores([`Error: el archivo supera el máximo de ${MAX_CARACTERES} caracteres.`]);
+      return;
+    }
+    $("#texto").value = texto;
+    $("#ejemplos").value = "";
+    convertir();
+  };
+  lector.onerror = () => mostrarErrores(["Error: no se pudo leer el archivo."]);
+  lector.readAsText(archivo, "UTF-8");
 }
 
 async function convertir(opciones = {}) {
@@ -243,7 +273,9 @@ function vistaFinal() {
         h("span", { class: "aviso__icono", "aria-hidden": "true" }, "✓"),
         h("div", {},
           h("h4", {}, "La gramática está en Forma Normal de Chomsky"),
-          h("p", {}, (g.total === 1 ? "La producción tiene" : `Las ${g.total} producciones tienen`) + " la forma A → BC o A → a (validación automática, RNF12).")))
+          h("p", {}, g.total === 0
+            ? "La gramática no tiene producciones, así que ninguna viola la forma A → BC o A → a (validación automática, RNF12)."
+            : (g.total === 1 ? "La producción tiene" : `Las ${g.total} producciones tienen`) + " la forma A → BC o A → a (validación automática, RNF12).")))
     : h("div", { class: "aviso aviso--error" },
         h("span", { class: "aviso__icono", "aria-hidden": "true" }, "✕"),
         h("div", {},
@@ -389,6 +421,8 @@ function cambiarModo(modo) {
    --------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
   $("#btn-convertir").addEventListener("click", () => convertir());
+  $("#btn-archivo").addEventListener("click", () => $("#archivo").click());
+  $("#archivo").addEventListener("change", (e) => cargarArchivo(e.target));
   $("#texto").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); convertir(); }
   });
