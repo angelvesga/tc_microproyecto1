@@ -225,6 +225,9 @@ def eliminar_variables_inutiles(g):
         f"Variables generadoras: {_conjunto_a_texto(generadoras, g.variables)}",
         f"Variables no generadoras: {_conjunto_a_texto(no_generadoras, g.variables)}",
     ]
+    if g.implicitas:
+        identificados_base.append(
+            f"Variables implícitas (no declaradas): {_conjunto_a_texto(set(g.implicitas), g.variables)}")
 
     if g.inicial not in generadoras:
         identificados_base.append(

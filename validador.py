@@ -28,10 +28,12 @@ def validar_gramatica(g):
     for simbolo in sorted(comunes):
         errores.append(f"Error: el símbolo {simbolo} está declarado como variable y como terminal.")
 
-    # Que el inicial no tenga producciones (o no genere nada) no es un error:
-    # el lenguaje es vacío y el proceso lo informa en la etapa de inútiles.
+    # Variables/producciones inútiles o inalcanzables NO son errores (las quita
+    # el proceso); y las variables usadas sin declarar las registra el lector.
     if not g.producciones:
         errores.append("Error: la gramática no tiene producciones.")
+    elif g.inicial in g.variables and g.inicial not in g.producciones:
+        errores.append(f"Error: el símbolo inicial {g.inicial} no tiene producciones.")
 
     # Cada símbolo desconocido se reporta una sola vez por producción.
     for cabeza, cuerpo in g.todas_las_producciones():
