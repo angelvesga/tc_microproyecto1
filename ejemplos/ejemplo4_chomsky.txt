@@ -1,8 +1,8 @@
-# Gramática sin nulas ni unitarias: sirve para probar solo la conversión a FNC
-V: E T F
-T: + * ( ) id
-S: E
+# Gramática sin nulas, unitarias ni variables inútiles: prueba solo la conversión a FNC
+V: S A B
+T: a b c
+S: S
 P:
-E -> E + T | T * F | ( E ) | id
-T -> T * F | ( E ) | id
-F -> ( E ) | id
+S -> a S b | A B c
+A -> a A | a
+B -> b B | b
