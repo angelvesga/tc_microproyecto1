@@ -9,10 +9,10 @@ El Paso se construye con crear_paso(), que calcula solo las producciones
 eliminadas y agregadas comparando el antes y el después.
 
 Orden correcto del proceso completo:
-    1. Producciones nulas
-    2. Producciones unitarias
-    3. Variables inútiles
-    4. Variables inalcanzables
+    1. Variables inútiles
+    2. Variables inalcanzables
+    3. Producciones nulas
+    4. Producciones unitarias
     5. Sustituir terminales
     6. Reducir producciones largas
 """
@@ -84,6 +84,18 @@ def eliminar_producciones_nulas(g):
             if nuevo_cuerpo:
                 nueva.agregar_produccion(cabeza, nuevo_cuerpo)
 
+    # Una variable que solo derivaba ε (A -> ε, o también A -> A) queda sin
+    # ninguna cadena terminal que generar: las versiones que la conservan
+    # no derivan nada y se descartan junto con la variable.
+    sin_producciones = set(g.variables) - calcular_generadoras(nueva)
+    for cabeza in list(nueva.producciones):
+        for cuerpo in list(nueva.producciones.get(cabeza, ())):
+            if any(s in sin_producciones for s in cuerpo):
+                nueva.quitar_produccion(cabeza, cuerpo)
+    for v in g.variables:
+        if v in sin_producciones and v != g.inicial:
+            nueva.quitar_variable(v)
+
     # Tratamiento de ε (RNF07)
     if g.inicial in anulables:
         inicial_en_derecha = any(
@@ -95,7 +107,8 @@ def eliminar_producciones_nulas(g):
             nueva.variables.remove(s0)
             nueva.variables.insert(0, s0)
             nueva.inicial = s0
-            nueva.agregar_produccion(s0, (g.inicial,))
+            if g.inicial not in sin_producciones:
+                nueva.agregar_produccion(s0, (g.inicial,))
             nueva.agregar_produccion(s0, ())
             decision_eps = f"nuevo símbolo inicial {s0} -> {g.inicial} | ε"
         else:
@@ -109,6 +122,11 @@ def eliminar_producciones_nulas(g):
         f"Variables anulables: {_conjunto_a_texto(anulables, orden)}",
         f"Decisión ε: {decision_eps}",
     ]
+    quitadas = sin_producciones - {g.inicial}
+    if quitadas:
+        identificados.append(
+            "Variables que solo derivaban ε (se eliminan junto con las versiones que las usan): "
+            f"{_conjunto_a_texto(quitadas, g.variables)}")
     return nueva, crear_paso("Eliminación de producciones nulas", g, nueva, identificados)
 
 
@@ -196,7 +214,8 @@ def eliminar_variables_inutiles(g):
     usan en el lado derecho.
 
     Si el símbolo inicial no es generador, el lenguaje es vacío: se
-    informa en 'identificados' sin que el programa falle."""
+    informa en 'identificados' y la gramática queda solo con el inicial y
+    sin producciones (sin que el programa falle)."""
     generadoras = calcular_generadoras(g)
     no_generadoras = set(g.variables) - generadoras
 
@@ -211,6 +230,11 @@ def eliminar_variables_inutiles(g):
         identificados_base.append(
             "El lenguaje es vacío: el símbolo inicial no genera ninguna cadena terminal."
         )
+        # Sin cadenas que generar no queda ninguna producción: solo el inicial.
+        for v in list(nueva.variables):
+            if v != g.inicial:
+                nueva.quitar_variable(v)
+        nueva.producciones = {}
         return nueva, crear_paso("Eliminación de variables inútiles", g, nueva, identificados_base)
 
     for v in list(no_generadoras):
@@ -367,10 +391,10 @@ def convertir_a_fnc(g):
 # PROCESO COMPLETO (modo automático)
 # ======================================================================
 ETAPAS_EN_ORDEN = [
-    eliminar_producciones_nulas,
-    eliminar_producciones_unitarias,
     eliminar_variables_inutiles,
     eliminar_variables_inalcanzables,
+    eliminar_producciones_nulas,
+    eliminar_producciones_unitarias,
     sustituir_terminales,
     reducir_producciones_largas,
 ]

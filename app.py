@@ -34,6 +34,29 @@ MAX_SIMBOLOS_POR_CUERPO = 12
 # Explicación de cada etapa, en el mismo orden de ETAPAS_EN_ORDEN
 EXPLICACIONES = [
     {
+        "corto": "Inútiles",
+        "titulo": "Eliminación de variables inútiles",
+        "rf": "RF11, RF12",
+        "que_hace": "Una variable es generadora si puede derivar alguna cadena de "
+                    "terminales. Las no generadoras nunca terminan en una palabra, "
+                    "así que se eliminan junto con toda producción que las use.",
+        "detalle": "Va primero porque lo que no genera ninguna cadena no aporta nada al "
+                   "lenguaje: quitarlo antes evita trabajar con símbolos que luego "
+                   "sobrarían. Se calcula por punto fijo. Si el símbolo inicial no es "
+                   "generador, el lenguaje es vacío y no queda ninguna producción.",
+    },
+    {
+        "corto": "Inalcanzables",
+        "titulo": "Eliminación de variables inalcanzables",
+        "rf": "RF13, RF14",
+        "que_hace": "Se recorre la gramática desde el símbolo inicial. Las variables "
+                    "y terminales que nunca aparecen en ese recorrido no participan en "
+                    "ninguna derivación y se eliminan.",
+        "detalle": "Va justo después de las inútiles porque quitar una variable no "
+                   "generadora (y las producciones que la usan) puede dejar a otras "
+                   "sin camino desde el inicial.",
+    },
+    {
         "corto": "Nulas",
         "titulo": "Eliminación de producciones nulas",
         "rf": "RF07, RF08",
@@ -41,9 +64,11 @@ EXPLICACIONES = [
                     "Cada producción se reescribe en todas sus versiones posibles, "
                     "conservando u omitiendo cada variable anulable, y se eliminan "
                     "las producciones A → ε.",
-        "detalle": "Si el símbolo inicial es anulable, ε pertenece al lenguaje y se "
-                   "conserva solo en el inicial (con un nuevo S0 → S | ε si S aparece "
-                   "en algún lado derecho).",
+        "detalle": "Va después de la limpieza para no generar versiones de producciones "
+                   "que de todos modos se iban a descartar. Si el símbolo inicial es "
+                   "anulable, ε pertenece al lenguaje y se conserva solo en el inicial "
+                   "(con un nuevo S0 → S | ε si S aparece en algún lado derecho). Una "
+                   "variable que solo derivaba ε desaparece junto con las versiones que la usaban.",
     },
     {
         "corto": "Unitarias",
@@ -53,27 +78,9 @@ EXPLICACIONES = [
                     "Se calculan los pares (A, B) tales que A llega a B usando solo "
                     "producciones unitarias, y A recibe las producciones no unitarias de B.",
         "detalle": "Va después de las nulas porque eliminar nulas puede crear "
-                   "producciones unitarias nuevas, como S → S.",
-    },
-    {
-        "corto": "Inútiles",
-        "titulo": "Eliminación de variables inútiles",
-        "rf": "RF11, RF12",
-        "que_hace": "Una variable es generadora si puede derivar alguna cadena de "
-                    "terminales. Las no generadoras nunca terminan en una palabra, "
-                    "así que se eliminan junto con toda producción que las use.",
-        "detalle": "Se calcula por punto fijo: se repite hasta que el conjunto de "
-                   "generadoras deja de crecer.",
-    },
-    {
-        "corto": "Inalcanzables",
-        "titulo": "Eliminación de variables inalcanzables",
-        "rf": "RF13, RF14",
-        "que_hace": "Se recorre la gramática desde el símbolo inicial. Las variables "
-                    "y terminales que nunca aparecen en ese recorrido no participan en "
-                    "ninguna derivación y se eliminan.",
-        "detalle": "Va después de las inútiles porque quitar una variable no "
-                   "generadora puede dejar a otras sin camino desde el inicial.",
+                   "producciones unitarias nuevas, como S → S, y antes de Chomsky porque "
+                   "la FNC no admite unitarias. Puede dejar variables sin uso "
+                   "(S → A, A → a deja a A sin ser alcanzada), que no afectan la validez.",
     },
     {
         "corto": "Terminales",
@@ -86,7 +93,7 @@ EXPLICACIONES = [
                    "no se duplican producciones.",
     },
     {
-        "corto": "Largas",
+        "corto": "Chomsky",
         "titulo": "Reducción de producciones largas",
         "rf": "RF16, RF17",
         "que_hace": "Las producciones con más de dos variables se parten en una cadena "

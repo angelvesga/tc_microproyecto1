@@ -19,10 +19,10 @@ MENU = """
  1. Ingresar gramática
  2. Mostrar gramática original
  3. Validar gramática
- 4. Eliminar producciones nulas
- 5. Eliminar producciones unitarias
- 6. Eliminar variables inútiles
- 7. Eliminar variables inalcanzables
+ 4. Eliminar variables inútiles
+ 5. Eliminar variables inalcanzables
+ 6. Eliminar producciones nulas
+ 7. Eliminar producciones unitarias
  8. Convertir a Forma Normal de Chomsky
  9. Ejecutar proceso completo
 10. Mostrar historial de transformaciones
@@ -164,10 +164,10 @@ class Aplicacion:
             "1": self.ingresar,
             "2": lambda: print(self.original) if self._hay_gramatica() else None,
             "3": self.validar,
-            "4": lambda: self.ejecutar_etapa(tr.eliminar_producciones_nulas),
-            "5": lambda: self.ejecutar_etapa(tr.eliminar_producciones_unitarias),
-            "6": lambda: self.ejecutar_etapa(tr.eliminar_variables_inutiles),
-            "7": lambda: self.ejecutar_etapa(tr.eliminar_variables_inalcanzables),
+            "4": lambda: self.ejecutar_etapa(tr.eliminar_variables_inutiles),
+            "5": lambda: self.ejecutar_etapa(tr.eliminar_variables_inalcanzables),
+            "6": lambda: self.ejecutar_etapa(tr.eliminar_producciones_nulas),
+            "7": lambda: self.ejecutar_etapa(tr.eliminar_producciones_unitarias),
             "8": lambda: self.ejecutar_etapa(tr.sustituir_terminales,
                                              tr.reducir_producciones_largas),
             "9": self.proceso_completo,

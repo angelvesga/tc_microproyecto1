@@ -80,6 +80,7 @@ textarea {
   background: var(--superficie-2);
 }
 textarea:focus { border-color: var(--primario); background: #fff; }
+.herramientas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .selector { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--tinta-2); }
 .selector select {
   padding: 7px 10px; border: 1px solid var(--borde); border-radius: 8px; background: #fff;
@@ -257,12 +258,14 @@ code { font-size: .92em; background: var(--primario-suave); padding: 1px 5px; bo
   .tarjeta { padding: 16px; }
   .etapa__titulo { font-size: 20px; }
   .navegacion__ayuda { display: none; }
+  .herramientas { width: 100%; }
+  .herramientas .boton { width: 100%; }
   .selector { width: 100%; }
   .selector select { flex: 1; max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 @media print {
-  .barra, .entrada__ayuda, .navegacion, .modo, .acciones, .selector { display: none !important; }
+  .barra, .entrada__ayuda, .navegacion, .modo, .acciones, .herramientas { display: none !important; }
   body { background: #fff; }
   .tarjeta { box-shadow: none; }
 }

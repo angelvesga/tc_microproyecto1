@@ -61,7 +61,7 @@ y devuelven `(gramatica_nueva, paso)`, donde `paso = crear_paso(titulo, g, nueva
 Las producciones eliminadas y agregadas se calculan solas.
 
 Cuando implementen una función, `python pruebas.py` debe pasar de `PENDIENTE` a `OK`.
-La meta es: **10 ok, 0 pendientes, 0 fallas**.
+La meta es: **19 ok, 0 pendientes, 0 fallas**.
 
 ## Decisiones de diseño (para el documento técnico)
 
@@ -72,6 +72,13 @@ La meta es: **10 ok, 0 pendientes, 0 fallas**.
   la misma gramática produce siempre el mismo resultado (RNF11).
 - Tratamiento de ε (RNF07): si el inicial es anulable, se conserva `S -> ε`;
   si además S aparece en algún lado derecho, se crea un inicial nuevo `S0 -> S | ε`.
-- Orden del proceso: nulas → unitarias → inútiles → inalcanzables → terminales → largas.
+- Orden del proceso: inútiles → inalcanzables → nulas → unitarias → terminales → largas
+  (en la web, el último paso se rotula «Chomsky»; en el menú de consola son las opciones 4 a 8).
   Las inalcanzables van después de las inútiles porque quitar una variable inútil
   puede dejar otras inalcanzables (ver `ejemplo2`).
+- Variables o producciones inútiles/inalcanzables y terminales sin usar no son errores
+  de validación. Si el símbolo inicial no genera ninguna cadena (lenguaje vacío), el paso
+  de inútiles lo informa y la gramática queda solo con el inicial y sin producciones.
+- Al eliminar nulas, una variable que solo derivaba ε (o `A -> ε | A`) se elimina junto con
+  las versiones que la conservaban, para no dejar variables sin producciones en los cuerpos.
+  Eliminar unitarias puede dejar variables sin uso (`S -> A`, `A -> a`); es válido para la FNC.

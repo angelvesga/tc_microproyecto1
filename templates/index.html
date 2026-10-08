@@ -29,10 +29,14 @@
     <section class="tarjeta" aria-labelledby="t-entrada">
       <div class="tarjeta__cabecera">
         <h2 id="t-entrada"><span class="num">1</span> Ingresa la gramática</h2>
-        <label class="selector">
-          <span>Cargar un ejemplo</span>
-          <select id="ejemplos" aria-label="Cargar un ejemplo"></select>
-        </label>
+        <div class="herramientas">
+          <label class="selector">
+            <span>Cargar un ejemplo</span>
+            <select id="ejemplos" aria-label="Cargar un ejemplo"></select>
+          </label>
+          <input type="file" id="archivo" accept=".txt,text/plain" aria-label="Seleccionar un archivo .txt con la gramática" hidden>
+          <button type="button" id="btn-archivo" class="boton" aria-label="Cargar archivo .txt con la gramática">Cargar archivo .txt</button>
+        </div>
       </div>
 
       <div class="entrada">
